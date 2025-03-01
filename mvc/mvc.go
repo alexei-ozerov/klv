@@ -5,15 +5,47 @@ import (
 
 	"github.com/alexei-ozerov/klv/kube"
 	"github.com/alexei-ozerov/klv/tables"
+	"github.com/alexei-ozerov/klv/utils"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/reflow/wordwrap"
 	"k8s.io/client-go/kubernetes"
 )
 
 // sessionState is used to track which model is focused
 type sessionState uint
+
+const TextLength = 150
+
+var (
+	modelStyle = lipgloss.NewStyle().
+			Align(lipgloss.Left, lipgloss.Left).
+			BorderStyle(lipgloss.HiddenBorder())
+
+	focusedModelStyle = lipgloss.NewStyle().
+				Align(lipgloss.Left, lipgloss.Left).
+				BorderStyle(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("69"))
+
+	fLogModelStyle = lipgloss.NewStyle().
+			Align(lipgloss.Left, lipgloss.Left).
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("69"))
+
+	logTableModelStyle = lipgloss.NewStyle().
+				Align(lipgloss.Left, lipgloss.Left).
+				BorderStyle(lipgloss.HiddenBorder())
+
+	focusedTextModelStyle = lipgloss.NewStyle().
+				Height(5).
+				Width(TextLength).
+				Align(lipgloss.Left, lipgloss.Left).
+				BorderStyle(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("69"))
+
+	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+)
 
 const (
 	namespaceView  sessionState = 0
@@ -126,7 +158,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case logsView:
 				logline := fmt.Sprintf("%s", m.logsTable.SelectedRow()[0])
-				loglineWrapped := wrapText(logline, TextLength)
+				loglineWrapped := utils.WrapText(logline, TextLength)
 				m.selectedLogLine = loglineWrapped
 			}
 		}
@@ -164,39 +196,4 @@ func (m MainModel) View() string {
 	s += helpStyle.Render(fmt.Sprintf("\ntab, h: cycle next • j: scroll down • k: scroll up • enter, l: select item • r: reload table • q: exit\n"))
 
 	return s
-}
-
-const TextLength = 150
-
-var (
-	modelStyle = lipgloss.NewStyle().
-			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.HiddenBorder())
-
-	focusedModelStyle = lipgloss.NewStyle().
-				Align(lipgloss.Left, lipgloss.Left).
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("69"))
-
-	fLogModelStyle = lipgloss.NewStyle().
-			Align(lipgloss.Left, lipgloss.Left).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("69"))
-
-	logTableModelStyle = lipgloss.NewStyle().
-				Align(lipgloss.Left, lipgloss.Left).
-				BorderStyle(lipgloss.HiddenBorder())
-
-	focusedTextModelStyle = lipgloss.NewStyle().
-				Height(5).
-				Width(TextLength).
-				Align(lipgloss.Left, lipgloss.Left).
-				BorderStyle(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("69"))
-
-	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-)
-
-func wrapText(text string, width int) string {
-	return wordwrap.String(text, width)
 }
