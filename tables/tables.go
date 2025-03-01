@@ -150,3 +150,32 @@ func GetLogsTable(clientset *kubernetes.Clientset, ns, pod, container string) ta
 
 	return t
 }
+
+func ClearLogsTable() table.Model {
+	columns := []table.Column{
+		{Title: fmt.Sprintf("Logs: "), Width: 114},
+	}
+
+	var rows []table.Row
+	rows = append(rows, table.Row{""})
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(false).
+		Bold(true)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+
+	return t
+}

@@ -35,6 +35,10 @@ type MainModel struct {
 	logsTable         table.Model
 }
 
+type ErrorMsg struct {
+	Error string
+}
+
 func NewModel() MainModel {
 	m := MainModel{state: namespaceView}
 	m.selectedNamespace = "default"
@@ -62,11 +66,13 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			if m.state == containersView || m.state == logsView {
+				m.selectedLogLine = ""
+				m.logsTable = tables.ClearLogsTable()
 				m.state = podsView
 			} else {
 				return m, tea.Quit
 			}
-		case "tab":
+		case "tab", "h":
 			if m.state == namespaceView || m.state == podsView {
 				if m.state == namespaceView {
 					m.state = podsView
@@ -91,23 +97,34 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case logsView:
 				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
 			}
-		case "enter":
-			if m.state == namespaceView {
+		case "enter", "l":
+			switch m.state {
+			case namespaceView:
 				m.selectedNamespace = fmt.Sprintf("%s", m.namespaceTable.SelectedRow()[0])
 				m.podsTable = tables.GetPodsTable(m.clientset, m.selectedNamespace)
-			}
-			if m.state == podsView {
+				m.state = podsView
+			case podsView:
+				// If more than one pod, do the thing :3
 				if len(m.podsTable.SelectedRow()) > 0 {
 					m.selectedPod = fmt.Sprintf("%s", m.podsTable.SelectedRow()[0])
+					m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
+
+					// Preload first container's log data
+					m.selectedContainer = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
+					m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
+
+					// If selection is valid, change screen focus
+					if m.selectedPod != "" {
+						m.state = containersView
+					}
 				}
-				m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
-				m.state = containersView
-			}
-			if m.state == containersView {
+			case containersView:
 				m.selectedContainer = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
 				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
-			}
-			if m.state == logsView {
+				if m.selectedContainer != "" {
+					m.state = logsView
+				}
+			case logsView:
 				logline := fmt.Sprintf("%s", m.logsTable.SelectedRow()[0])
 				loglineWrapped := wrapText(logline, TextLength)
 				m.selectedLogLine = loglineWrapped
@@ -144,7 +161,7 @@ func (m MainModel) View() string {
 		}
 	}
 
-	s += helpStyle.Render(fmt.Sprintf("\ntab: focus next • j: scroll down • k: scroll up • enter: select item • r: reload table • q: exit\n"))
+	s += helpStyle.Render(fmt.Sprintf("\ntab, h: cycle next • j: scroll down • k: scroll up • enter, l: select item • r: reload table • q: exit\n"))
 
 	return s
 }
