@@ -47,6 +47,6 @@ Make sure you have a valid and authenticated (if using GCloud Cli for example) K
 
 - j - scroll down
 - k - scroll up
-- r - reload current screen/
+- r - reload current screen
 - enter, l - select table entry
 - q - go back (if on container / log view), exit
