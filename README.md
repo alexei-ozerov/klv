@@ -24,19 +24,9 @@ You must have a kubeconfig file set in your default `.kube` folder.
 
 ### Installation
 
-#### Linux
+The application has builds to run on Linux, MacOS (Darwin), and Windows.
 
-Navigate to the _Release_ section and pick the Linux release archive. It will contain a binary you can run from the
-command line. Add it to your path to be able to execute it anywhere from your terminal.
-
-#### MacOS
-
-Navigate to the _Release_ section and pick the Darwin release archive. It will contain a binary you can run from the
-command line. Add it to your path to be able to execute it anywhere from your terminal.
-
-#### Windows
-
-Navigate to the _Release_ section and pick the Windows release archive. It will contain a binary you can run from the
+Navigate to the _Release_ section and pick the appropriate release archive. It will contain a binary you can run from the
 command line. Add it to your path to be able to execute it anywhere from your terminal.
 
 ## Usage Instructions
