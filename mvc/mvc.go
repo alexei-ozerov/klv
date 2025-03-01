@@ -23,30 +23,29 @@ const (
 )
 
 type MainModel struct {
-	state           sessionState
-	index           int
-	clientset       *kubernetes.Clientset
-	namespace       string
-	pod             string
-	container       string
-	namespaceTable  table.Model
-	podsTable       table.Model
-	containersTable table.Model
-	logsTable       table.Model
-	logSnippet      string
+	state             sessionState
+	clientset         *kubernetes.Clientset
+	selectedNamespace string
+	selectedPod       string
+	selectedContainer string
+	selectedLogLine   string
+	namespaceTable    table.Model
+	podsTable         table.Model
+	containersTable   table.Model
+	logsTable         table.Model
 }
 
 func NewModel() MainModel {
 	m := MainModel{state: namespaceView}
-	m.namespace = "default"
-	m.pod = ""
-	m.container = ""
-	m.logSnippet = ""
+	m.selectedNamespace = "default"
+	m.selectedPod = ""
+	m.selectedContainer = ""
+	m.selectedLogLine = ""
 	m.clientset = kube.InitKubeCtx()
 	m.namespaceTable = tables.GetNamespacesTable(m.clientset)
-	m.podsTable = tables.GetPodsTable(m.clientset, m.namespace)
-	m.containersTable = tables.GetContainersTable(m.clientset, m.namespace, m.pod)
-	m.logsTable = tables.GetLogsTable(m.clientset, m.namespace, m.pod, m.container)
+	m.podsTable = tables.GetPodsTable(m.clientset, m.selectedNamespace)
+	m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
+	m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
 
 	return m
 }
@@ -82,38 +81,36 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "r":
-			if m.state == namespaceView {
+			switch m.state {
+			case namespaceView:
 				m.namespaceTable = tables.GetNamespacesTable(m.clientset)
-			}
-			if m.state == podsView {
-				m.podsTable = tables.GetPodsTable(m.clientset, m.namespace)
-			}
-			if m.state == containersView {
-				m.containersTable = tables.GetContainersTable(m.clientset, m.namespace, m.pod)
-			}
-			if m.state == logsView {
-				m.logsTable = tables.GetLogsTable(m.clientset, m.namespace, m.pod, m.container)
+			case podsView:
+				m.podsTable = tables.GetPodsTable(m.clientset, m.selectedNamespace)
+			case containersView:
+				m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
+			case logsView:
+				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
 			}
 		case "enter":
 			if m.state == namespaceView {
-				m.namespace = fmt.Sprintf("%s", m.namespaceTable.SelectedRow()[0])
-				m.podsTable = tables.GetPodsTable(m.clientset, m.namespace)
+				m.selectedNamespace = fmt.Sprintf("%s", m.namespaceTable.SelectedRow()[0])
+				m.podsTable = tables.GetPodsTable(m.clientset, m.selectedNamespace)
 			}
 			if m.state == podsView {
 				if len(m.podsTable.SelectedRow()) > 0 {
-					m.pod = fmt.Sprintf("%s", m.podsTable.SelectedRow()[0])
+					m.selectedPod = fmt.Sprintf("%s", m.podsTable.SelectedRow()[0])
 				}
-				m.containersTable = tables.GetContainersTable(m.clientset, m.namespace, m.pod)
+				m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
 				m.state = containersView
 			}
 			if m.state == containersView {
-				m.container = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
-				m.logsTable = tables.GetLogsTable(m.clientset, m.namespace, m.pod, m.container)
+				m.selectedContainer = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
+				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
 			}
 			if m.state == logsView {
 				logline := fmt.Sprintf("%s", m.logsTable.SelectedRow()[0])
 				loglineWrapped := wrapText(logline, TextLength)
-				m.logSnippet = loglineWrapped
+				m.selectedLogLine = loglineWrapped
 			}
 		}
 		switch m.state {
@@ -135,9 +132,9 @@ func (m MainModel) View() string {
 
 	if m.state == logsView || m.state == containersView {
 		if m.state == containersView {
-			s += lipgloss.JoinVertical(lipgloss.Top, lipgloss.JoinHorizontal(lipgloss.Top, focusedModelStyle.Render(m.containersTable.View()), logTableModelStyle.Render(m.logsTable.View())), focusedTextModelStyle.Render(fmt.Sprintf("%s", m.logSnippet)))
+			s += lipgloss.JoinVertical(lipgloss.Top, lipgloss.JoinHorizontal(lipgloss.Top, focusedModelStyle.Render(m.containersTable.View()), logTableModelStyle.Render(m.logsTable.View())), focusedTextModelStyle.Render(fmt.Sprintf("%s", m.selectedLogLine)))
 		} else { // log view
-			s += lipgloss.JoinVertical(lipgloss.Top, lipgloss.JoinHorizontal(lipgloss.Top, modelStyle.Render(m.containersTable.View()), fLogModelStyle.Render(m.logsTable.View())), focusedTextModelStyle.Render(fmt.Sprintf("%s", m.logSnippet)))
+			s += lipgloss.JoinVertical(lipgloss.Top, lipgloss.JoinHorizontal(lipgloss.Top, modelStyle.Render(m.containersTable.View()), fLogModelStyle.Render(m.logsTable.View())), focusedTextModelStyle.Render(fmt.Sprintf("%s", m.selectedLogLine)))
 		}
 	} else {
 		if m.state == namespaceView {
