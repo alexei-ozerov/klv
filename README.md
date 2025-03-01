@@ -14,6 +14,7 @@ This is a very alpha version project with a lot of things to fix. Apologies in a
 - [ ] Implement channels or goroutines (need to decide which) to handle live log tailing
 - [ ] Implement a search function for the log table
 - [ ] Complete README.md
+- [X] Implement build pipeline
 
 ## Installation Instructions
 
