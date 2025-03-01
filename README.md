@@ -1,6 +1,8 @@
 # Kubernetes Log Viewer (KLV)
 A golang TUI built with Bubble Tea to simplify log viewing.
 
+![klv-demo](https://github.com/user-attachments/assets/65e6154c-ca70-4572-87bd-fff165d015f7)
+
 ## Todos
 This is a very alpha version project with a lot of things to fix. Apologies in advance.
 
