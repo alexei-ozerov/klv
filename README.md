@@ -13,7 +13,7 @@ This is a very alpha version project with a lot of things to fix. Apologies in a
 - [ ] Rework spaghetti code :3
 - [ ] Implement channels or goroutines (need to decide which) to handle live log tailing
 - [ ] Implement a search function for the log table
-- [ ] Complete README.md
+- [X] Complete first draft of README.md
 - [X] Implement build pipeline
 
 ## Installation Instructions
@@ -41,4 +41,12 @@ command line. Add it to your path to be able to execute it anywhere from your te
 
 ## Usage Instructions
 
-TODO
+Make sure you have a valid and authenticated (if using GCloud Cli for example) Kubeconfig. Run the application. You will be presented with the first screen (the namespace / pod screen). Once you select a pod, you will be taken to the container / log screen.
+
+### Controls
+
+- j - scroll down
+- k - scroll up
+- r - reload current screen/
+- enter, l - select table entry
+- q - go back (if on container / log view), exit
