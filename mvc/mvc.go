@@ -128,6 +128,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.containersTable = tables.GetContainersTable(m.clientset, m.selectedNamespace, m.selectedPod)
 			case logsView:
 				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
+				m.logsTable.GotoBottom()
 			}
 		case "enter", "l":
 			switch m.state {
@@ -144,6 +145,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Preload first container's log data
 					m.selectedContainer = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
 					m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
+					m.logsTable.GotoBottom()
 
 					// If selection is valid, change screen focus
 					if m.selectedPod != "" {
@@ -153,6 +155,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case containersView:
 				m.selectedContainer = fmt.Sprintf("%s", m.containersTable.SelectedRow()[0])
 				m.logsTable = tables.GetLogsTable(m.clientset, m.selectedNamespace, m.selectedPod, m.selectedContainer)
+				m.logsTable.GotoBottom()
 				if m.selectedContainer != "" {
 					m.state = logsView
 				}

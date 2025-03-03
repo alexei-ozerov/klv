@@ -2,7 +2,7 @@ package tables
 
 import (
 	"fmt"
-	"slices"
+//	"slices"
 
 	"github.com/alexei-ozerov/klv/kube"
 	"github.com/charmbracelet/bubbles/table"
@@ -121,7 +121,7 @@ func GetLogsTable(clientset *kubernetes.Clientset, ns, pod, container string) ta
 	var rows []table.Row
 	if container != "" {
 		logs := kube.GetLogs(clientset, ns, pod, container)
-		slices.Reverse(logs)
+		//	slices.Reverse(logs)
 
 		for _, log := range logs {
 			rows = append(rows, table.Row{log})
